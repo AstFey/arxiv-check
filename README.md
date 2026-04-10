@@ -14,39 +14,61 @@ This is a totally vibe coded amateur project based on Codex. Please use it at yo
 
 ## Quick start
 
-1. Create and activate a virtual environment:
+1. Create and activate a virtual environment.
 
 ```powershell
 python -m venv .venv
-.\.venv\bin\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 ```
 
-2. Run a local check:
+```sh
+python3 -m venv .venv
+. .venv/bin/activate
+```
+
+2. Run a local check.
 
 ```powershell
 $env:PYTHONPATH = "src"
 python -m arxiv_check.cli check
 ```
 
-3. Optional Telegram settings:
+```sh
+PYTHONPATH=src python -m arxiv_check.cli check
+```
+
+3. Optional Telegram settings.
 
 ```powershell
 $env:TELEGRAM_BOT_TOKEN = "your-bot-token"
 $env:TELEGRAM_CHAT_ID = "your-chat-id"
 ```
 
-4. Push the latest matching results to Telegram:
+```sh
+export TELEGRAM_BOT_TOKEN="your-bot-token"
+export TELEGRAM_CHAT_ID="your-chat-id"
+```
+
+4. Push the latest matching results to Telegram.
 
 ```powershell
 $env:PYTHONPATH = "src"
 python -m arxiv_check.cli check --telegram
 ```
 
-5. Run the Telegram bot:
+```sh
+PYTHONPATH=src python -m arxiv_check.cli check --telegram
+```
+
+5. Run the Telegram bot.
 
 ```powershell
 $env:PYTHONPATH = "src"
 python -m arxiv_check.cli telegram-bot
+```
+
+```sh
+PYTHONPATH=src python -m arxiv_check.cli telegram-bot
 ```
 
 For a one-shot Telegram polling test:
@@ -56,12 +78,25 @@ $env:PYTHONPATH = "src"
 python -m arxiv_check.cli telegram-bot --once
 ```
 
-6. Test against the current feed without changing state:
+```sh
+PYTHONPATH=src python -m arxiv_check.cli telegram-bot --once
+```
+
+6. Test against the current feed without changing state.
 
 ```powershell
 $env:PYTHONPATH = "src"
 python -m arxiv_check.cli check --replay-current-feed --dry-run
 ```
+
+```sh
+PYTHONPATH=src python -m arxiv_check.cli check --replay-current-feed --dry-run
+```
+
+The repository also includes helper launchers for both environments:
+
+- Windows PowerShell: `scripts/run_scheduled_check.ps1`, `scripts/run_telegram_bot.ps1`
+- Linux/macOS/other POSIX shells: `scripts/run_scheduled_check.sh`, `scripts/run_telegram_bot.sh`
 
 ## Configuration
 
@@ -87,6 +122,12 @@ For a daily push on Windows, create a Task Scheduler task that runs:
 powershell -ExecutionPolicy Bypass -File "c:\Personal\Coding\arxiv-check\scripts\run_scheduled_check.ps1"
 ```
 
+For a daily push on Linux or macOS, add a cron entry that runs the POSIX helper script:
+
+```cron
+0 9 * * * /bin/sh /path/to/arxiv-check/scripts/run_scheduled_check.sh >> /tmp/arxiv-check.log 2>&1
+```
+
 The state file prevents duplicate posts across runs.
 
 The following feature is still under testing.
@@ -97,6 +138,13 @@ If you want Telegram `/check` and `/help` to respond automatically, that is a se
 powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "c:\Personal\Coding\arxiv-check\scripts\run_telegram_bot.ps1"
 ```
 
+On Linux or macOS, run the matching POSIX helper script under your preferred process manager:
+
+```sh
+/bin/sh /path/to/arxiv-check/scripts/run_telegram_bot.sh
+```
+
+`systemd`, `launchd`, `supervisord`, `screen`, or `tmux` are all reasonable ways to keep the bot running.
 
 ## Telegram commands
 
