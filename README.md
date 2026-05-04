@@ -2,7 +2,7 @@
 
 This is a totally vibe coded amateur project based on Codex. Please use it at your discretion.
 
-`arxiv-check` fetches the `quant-ph` arXiv RSS feed, applies a strict keyword filter, remembers the last check time, and can deliver updates through a Telegram bot.
+`arxiv-check` fetches the `quant-ph` arXiv RSS feed, applies a strict keyword filter, remembers the last check time, and can deliver updates through a Telegram bot or a Feishu (Lark) incoming webhook.
 
 ## What it does
 
@@ -11,6 +11,7 @@ This is a totally vibe coded amateur project based on Codex. Please use it at yo
 - Includes only papers published between the previous check and the current check
 - Exposes a CLI for manual checks
 - Exposes a Telegram bot interface with `/check` and `/help`
+- Sends results to a Feishu (Lark) group via an incoming webhook
 
 ## Quick start
 
@@ -58,6 +59,38 @@ python -m arxiv_check.cli check --telegram
 
 ```sh
 PYTHONPATH=src python -m arxiv_check.cli check --telegram
+```
+
+4a. Optional Feishu (Lark) settings.
+
+In the Feishu desktop app, go to **Group Settings → Bots → Add Bot → Custom Bot**, copy the
+webhook URL, and optionally enable signature verification to get a secret.
+
+```powershell
+$env:FEISHU_WEBHOOK_URL = "https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxx"
+$env:FEISHU_WEBHOOK_SECRET = "your-signing-secret"   # optional
+```
+
+```sh
+export FEISHU_WEBHOOK_URL="https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxx"
+export FEISHU_WEBHOOK_SECRET="your-signing-secret"   # optional
+```
+
+Push the latest matching results to Feishu.
+
+```powershell
+$env:PYTHONPATH = "src"
+python -m arxiv_check.cli check --feishu
+```
+
+```sh
+PYTHONPATH=src python -m arxiv_check.cli check --feishu
+```
+
+You can combine both flags to send to Telegram and Feishu at the same time.
+
+```sh
+PYTHONPATH=src python -m arxiv_check.cli check --telegram --feishu
 ```
 
 5. Run the Telegram bot.
@@ -108,6 +141,8 @@ Configuration is environment-variable based.
 - `TELEGRAM_BOT_TOKEN`: bot token for Telegram
 - `TELEGRAM_CHAT_ID`: chat id used by `check --telegram`
 - `TELEGRAM_ALLOWED_CHAT_IDS`: comma-separated allowlist for bot polling mode
+- `FEISHU_WEBHOOK_URL`: incoming webhook URL for a Feishu custom bot, used by `check --feishu`
+- `FEISHU_WEBHOOK_SECRET`: optional signing secret for Feishu webhook signature verification
 
 If `ARXIV_KEYWORDS` is not set, the project uses a default list centered on quantum computing, quantum complexity, quantum cryptography, and quantum error correction / fault tolerance.
 
@@ -161,6 +196,8 @@ On Linux or macOS, run the matching POSIX helper script under your preferred pro
   Shows config and state status.
 - `python -m arxiv_check.cli doctor --telegram`
   Verifies the Telegram bot token live and shows pending update count.
+- `python -m arxiv_check.cli doctor`
+  Also prints whether `FEISHU_WEBHOOK_URL` and `FEISHU_WEBHOOK_SECRET` are configured.
 
 ## Notes
 

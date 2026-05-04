@@ -5,6 +5,8 @@ from pathlib import Path
 
 from .config import load_config
 from .env import load_dotenv
+from .feishu import FeishuError
+from .feishu import send_check_result as feishu_send_check_result
 from .formatter import format_paper_list
 from .models import AppState
 from .service import check_for_new_papers
@@ -27,6 +29,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     check_parser = subparsers.add_parser("check", help="Fetch the feed and print new matching papers.")
     check_parser.add_argument("--telegram", action="store_true", help="Also send the result to TELEGRAM_CHAT_ID.")
+    check_parser.add_argument("--feishu", action="store_true", help="Also send the result to FEISHU_WEBHOOK_URL.")
     check_parser.add_argument(
         "--replay-current-feed",
         action="store_true",
@@ -63,7 +66,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def run_check(send_to_telegram: bool, replay_current_feed: bool, dry_run: bool) -> int:
+def run_check(send_to_telegram: bool, send_to_feishu: bool, replay_current_feed: bool, dry_run: bool) -> int:
     config = load_config()
     state = load_state(config.state_path)
     effective_state = state
@@ -76,6 +79,11 @@ def run_check(send_to_telegram: bool, replay_current_feed: bool, dry_run: bool) 
         if not config.telegram_bot_token or not config.telegram_chat_id:
             raise SystemExit("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are required for --telegram.")
         send_check_result(config.telegram_bot_token, config.telegram_chat_id, result)
+
+    if send_to_feishu:
+        if not config.feishu_webhook_url:
+            raise SystemExit("FEISHU_WEBHOOK_URL is required for --feishu.")
+        feishu_send_check_result(config.feishu_webhook_url, result, config.feishu_webhook_secret)
 
     if not dry_run:
         save_state(config.state_path, next_state)
@@ -189,6 +197,8 @@ def run_doctor(include_telegram: bool) -> int:
         "Telegram allowed chats configured: "
         f"{', '.join(sorted(config.telegram_allowed_chat_ids)) if config.telegram_allowed_chat_ids else 'none'}"
     )
+    print(f"Feishu webhook URL configured: {_bool_label(bool(config.feishu_webhook_url))}")
+    print(f"Feishu webhook secret configured: {_bool_label(bool(config.feishu_webhook_secret))}")
 
     if include_telegram:
         if not config.telegram_bot_token:
@@ -210,6 +220,7 @@ def main() -> int:
     if args.command == "check":
         return run_check(
             send_to_telegram=args.telegram,
+            send_to_feishu=args.feishu,
             replay_current_feed=args.replay_current_feed,
             dry_run=args.dry_run,
         )
