@@ -33,6 +33,8 @@ class AppConfig:
     telegram_bot_token: Optional[str]
     telegram_chat_id: Optional[str]
     telegram_allowed_chat_ids: Set[str]
+    feishu_webhook_url: Optional[str]
+    feishu_webhook_secret: Optional[str]
 
 
 def _split_csv(value: Optional[str]) -> List[str]:
@@ -50,5 +52,7 @@ def load_config() -> AppConfig:
         telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
         telegram_chat_id=os.getenv("TELEGRAM_CHAT_ID"),
         telegram_allowed_chat_ids=set(_split_csv(os.getenv("TELEGRAM_ALLOWED_CHAT_IDS"))),
+        feishu_webhook_url=os.getenv("FEISHU_WEBHOOK_URL") or None,
+        feishu_webhook_secret=os.getenv("FEISHU_WEBHOOK_SECRET") or None,
     )
 
