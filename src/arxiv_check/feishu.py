@@ -3,6 +3,7 @@ import hashlib
 import hmac
 import json
 import time
+from datetime import timezone, timedelta
 from typing import Optional
 from urllib.request import Request, urlopen
 
@@ -42,8 +43,13 @@ def send_text(webhook_url: str, text: str, secret: Optional[str] = None) -> None
     _post_json(webhook_url, payload)
 
 
+_CST = timezone(timedelta(hours=8))
+
+
 def send_check_result(webhook_url: str, result: CheckResult, secret: Optional[str] = None) -> None:
-    summary = f"检查了 {result.fetched_count} 条 feed，检查时间：{result.checked_at.isoformat()}\n\n"
+    checked_at_cst = result.checked_at.astimezone(_CST)
+    checked_at_str = checked_at_cst.strftime("%Y-%m-%d %H:%M:%S CST")
+    summary = f"检查了 {result.fetched_count} 条 feed，检查时间：{checked_at_str}\n\n"
     message = summary + format_paper_list(result.papers)
     _send_chunked(webhook_url, message, secret)
 
