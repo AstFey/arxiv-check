@@ -128,8 +128,8 @@ PYTHONPATH=src python -m arxiv_check.cli check --replay-current-feed --dry-run
 
 The repository also includes helper launchers for both environments:
 
-- Windows PowerShell: `scripts/run_scheduled_check.ps1`, `scripts/run_telegram_bot.ps1`
-- Linux/macOS/other POSIX shells: `scripts/run_scheduled_check.sh`, `scripts/run_telegram_bot.sh`
+- Windows PowerShell: `scripts/run_scheduled_check.ps1`, `scripts/run_scheduled_check_feishu.ps1`, `scripts/run_telegram_bot.ps1`
+- Linux/macOS/other POSIX shells: `scripts/run_scheduled_check.sh`, `scripts/run_scheduled_check_feishu.sh`, `scripts/run_telegram_bot.sh`
 
 ## Configuration
 
@@ -151,6 +151,8 @@ Check `.env.example` for example.
 
 ## Daily runs
 
+### Telegram
+
 For a daily push on Windows, create a Task Scheduler task that runs:
 
 ```powershell
@@ -161,6 +163,54 @@ For a daily push on Linux or macOS, add a cron entry that runs the POSIX helper 
 
 ```cron
 0 9 * * * /bin/sh /path/to/arxiv-check/scripts/run_scheduled_check.sh >> /tmp/arxiv-check.log 2>&1
+```
+
+### Feishu (Lark)
+
+Make sure `FEISHU_WEBHOOK_URL` (and optionally `FEISHU_WEBHOOK_SECRET`) are set in your `.env` file,
+then schedule the Feishu helper script in the same way.
+
+**macOS / Linux — cron:**
+
+```cron
+0 9 * * * /bin/sh /path/to/arxiv-check/scripts/run_scheduled_check_feishu.sh >> /tmp/arxiv-check-feishu.log 2>&1
+```
+
+**macOS — launchd** (`~/Library/LaunchAgents/com.arxiv-check.feishu.plist`):
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>            <string>com.arxiv-check.feishu</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/sh</string>
+    <string>/path/to/arxiv-check/scripts/run_scheduled_check_feishu.sh</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>   <integer>9</integer>
+    <key>Minute</key> <integer>0</integer>
+  </dict>
+  <key>StandardOutPath</key> <string>/tmp/arxiv-check-feishu.log</string>
+  <key>StandardErrorPath</key><string>/tmp/arxiv-check-feishu.log</string>
+</dict>
+</plist>
+```
+
+Load it with:
+
+```sh
+launchctl load ~/Library/LaunchAgents/com.arxiv-check.feishu.plist
+```
+
+**Windows — Task Scheduler:**
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "C:\path\to\arxiv-check\scripts\run_scheduled_check_feishu.ps1"
 ```
 
 The state file prevents duplicate posts across runs.
