@@ -72,6 +72,21 @@ def _send_chunked(webhook_url: str, text: str, secret: Optional[str], limit: int
     if current:
         chunks.append("\n\n".join(current))
 
-    for chunk in chunks:
-        send_text(webhook_url, chunk, secret)
-        time.sleep(0.3)
+    for i, chunk in enumerate(chunks):
+        if i > 0:
+            time.sleep(1.5)
+        _send_with_retry(webhook_url, chunk, secret)
+
+
+def _send_with_retry(webhook_url: str, text: str, secret: Optional[str], max_retries: int = 3) -> None:
+    delay = 5.0
+    for attempt in range(max_retries):
+        try:
+            send_text(webhook_url, text, secret)
+            return
+        except FeishuError as exc:
+            if attempt < max_retries - 1 and "frequency limited" in str(exc):
+                time.sleep(delay)
+                delay *= 2
+            else:
+                raise
