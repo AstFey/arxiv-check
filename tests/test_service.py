@@ -36,6 +36,8 @@ class ServiceTests(unittest.TestCase):
             telegram_bot_token=None,
             telegram_chat_id=None,
             telegram_allowed_chat_ids=set(),
+            feishu_webhook_url=None,
+            feishu_webhook_secret=None,
         )
         state = AppState(
             last_checked_at=datetime(2026, 3, 11, 7, 0, tzinfo=timezone.utc),

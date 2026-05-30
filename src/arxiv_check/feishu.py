@@ -50,7 +50,7 @@ def send_check_result(webhook_url: str, result: CheckResult, secret: Optional[st
     checked_at_cst = result.checked_at.astimezone(_CST)
     checked_at_str = checked_at_cst.strftime("%Y-%m-%d %H:%M:%S CST")
     summary = f"检查了 {result.fetched_count} 条 feed，检查时间：{checked_at_str}\n\n"
-    message = summary + format_paper_list(result.papers)
+    message = summary + format_paper_list(result.papers, numbered=True)
     _send_chunked(webhook_url, message, secret)
 
 
